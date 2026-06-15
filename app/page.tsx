@@ -4,6 +4,7 @@ import { enokiClientConfig } from "~/lib/enoki/config";
 import { shortenAddress, useEnokiAuth } from "~/contexts/EnokiAuth";
 import type { SignedSessionHeaders } from "~/lib/session/signing";
 import { useState } from "react";
+import { FeaturePanels } from "~/components/FeaturePanels";
 
 export default function Page() {
   const [headers, setHeaders] = useState<SignedSessionHeaders | null>(null);
@@ -112,6 +113,7 @@ export default function Page() {
             </dl>
           )}
         </div>
+        <FeaturePanels />
       </section>
     </main>
   );

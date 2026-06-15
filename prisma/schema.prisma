@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  address   String   @id
+  email     String   @unique
+  name      String?
+  picture   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mailboxes Mailbox[]
+}
+
+model Mailbox {
+  id          String   @id
+  ownerAddress String
+  email       String   @unique
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User              @relation(fields: [ownerAddress], references: [address], onDelete: Cascade)
+  emails      Email[]
+  storage     WorkspaceStorage?
+
+  @@index([ownerAddress, createdAt])
+}
+
+model WorkspaceStorage {
+  id                         String   @id @default(cuid())
+  mailboxId                  String   @unique
+  provider                   String   @default("harbor")
+  status                     String   @default("pending")
+  harborSpaceId              String?
+  harborBucketId             String?
+  harborOwnerAddress         String?
+  harborApiKeyCiphertext     String?  @db.Text
+  harborServiceKeyCiphertext String?  @db.Text
+  lastError                  String?  @db.Text
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  mailbox Mailbox @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+}
+
+model Email {
+  id               String   @id
+  mailboxId        String
+  folder           String   @default("inbox")
+  subject          String?
+  sender           String?
+  recipient        String?
+  cc               String?
+  bcc              String?
+  date             DateTime @default(now())
+  read             Boolean  @default(false)
+  bodyPreview      String?  @db.Text
+  inReplyTo        String?
+  emailReferences  String?  @db.Text
+  threadId         String?
+  messageId        String?
+  rawHeaders       String?  @db.Text
+  harborBodyFileId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  mailbox     Mailbox      @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+
+  @@index([mailboxId, folder, date])
+  @@index([mailboxId, threadId, date])
+}
+
+model Attachment {
+  id           String @id
+  emailId      String
+  filename     String
+  mimetype     String
+  size         Int
+  contentId    String?
+  disposition  String?
+  harborFileId String
+
+  email Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId])
+}
+
+model RagDocument {
+  documentId   String   @id
+  ownerAddress String
+  filename     String
+  mimeType     String
+  chunkCount   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([ownerAddress, updatedAt])
+}
+
+model RagCredential {
+  ownerAddress          String   @id
+  accountId             String?
+  delegateKeyCiphertext String   @db.Text
+  delegatePublicKey     String
+  delegateAddress       String
+  serverUrl             String
+  status                String   @default("pending")
+  lastError             String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([status, updatedAt])
+}

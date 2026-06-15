@@ -17,6 +17,7 @@ import {
   getEnokiRedirectUrl,
   isEnokiClientConfigured,
 } from "~/lib/enoki/config";
+import { FeaturePanels } from "~/components/FeaturePanels";
 import {
   createSignedSessionHeaders,
   type SignedSessionHeaders,
@@ -196,9 +197,10 @@ function SignInScreen() {
                 Set NEXT_PUBLIC_ENOKI_API_KEY and NEXT_PUBLIC_GOOGLE_CLIENT_ID.
               </p>
             )}
-            {error && <p className="form-note error-text">{error}</p>}
+          {error && <p className="form-note error-text">{error}</p>}
           </div>
         </div>
+        <FeaturePanels />
       </section>
     </main>
   );

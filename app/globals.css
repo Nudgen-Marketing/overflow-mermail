@@ -303,6 +303,63 @@ h1 {
   font-size: 12px;
 }
 
+.feature-panels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.feature-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 16px;
+}
+
+.feature-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.feature-card h3 {
+  margin: 18px 0 10px;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.feature-card ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature-card li {
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 8px;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 12px;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     padding: 14px;
@@ -330,5 +387,15 @@ h1 {
 
   .headers-grid {
     grid-template-columns: 1fr;
+  }
+
+  .feature-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1120px) {
+  .feature-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
