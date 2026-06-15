@@ -17,6 +17,10 @@ import {
   getEnokiRedirectUrl,
   isEnokiClientConfigured,
 } from "~/lib/enoki/config";
+import {
+  createSignedSessionHeaders,
+  type SignedSessionHeaders,
+} from "~/lib/session/signing";
 
 interface JwtProfile {
   email?: string;
@@ -35,6 +39,7 @@ interface EnokiAuthContextValue {
   avatarUrl: string | null;
   redirectToAuthUrl: () => Promise<void>;
   logout: () => Promise<void>;
+  generateSignedSessionHeaders: () => Promise<SignedSessionHeaders>;
 }
 
 const EnokiAuthContext = createContext<EnokiAuthContextValue | null>(null);
@@ -269,6 +274,17 @@ export function EnokiAuthProvider({ children }: { children: React.ReactNode }) {
     window.location.assign(url);
   }, [enokiFlow]);
 
+  const generateSignedSessionHeaders = useCallback(async () => {
+    if (!address) throw new Error("Sui address is required.");
+    const signer = await enokiFlow.getKeypair({
+      network: enokiClientConfig.network,
+    });
+    return createSignedSessionHeaders({
+      address,
+      signer,
+    });
+  }, [address, enokiFlow]);
+
   const value = useMemo<EnokiAuthContextValue>(
     () => ({
       isConnected,
@@ -280,12 +296,14 @@ export function EnokiAuthProvider({ children }: { children: React.ReactNode }) {
       avatarUrl,
       redirectToAuthUrl,
       logout,
+      generateSignedSessionHeaders,
     }),
     [
       address,
       avatarUrl,
       displayName,
       emailAddress,
+      generateSignedSessionHeaders,
       isConnected,
       jwt,
       logout,
