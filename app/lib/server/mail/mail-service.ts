@@ -8,6 +8,7 @@ import {
 } from "~/lib/email/helpers";
 import { SendEmailRequestSchema, type SendEmailRequest } from "~/lib/email/schemas";
 import { sendEmail } from "~/lib/server/mail/cloudflare-email";
+import { uploadMailboxFile } from "~/lib/server/harbor/mailbox-storage";
 
 type ParsedAddress = {
   address?: string;
@@ -61,6 +62,13 @@ export async function parseInboundEmail(rawEmail: ArrayBuffer) {
 
 export async function persistInboundEmail(rawEmail: ArrayBuffer) {
   const parsed = await parseInboundEmail(rawEmail);
+  const harborBodyFileId = parsed.body
+    ? await uploadMailboxFile(
+        parsed.mailboxId,
+        new TextEncoder().encode(parsed.body),
+        "body.html",
+      )
+    : null;
   await prisma.mailbox.upsert({
     where: { id: parsed.mailboxId },
     create: {
@@ -96,16 +104,24 @@ export async function persistInboundEmail(rawEmail: ArrayBuffer) {
       threadId: parsed.threadId,
       messageId: parsed.messageId,
       rawHeaders: parsed.rawHeaders,
+      harborBodyFileId,
       attachments: {
-        create: parsed.attachments.map((attachment) => ({
-          id: attachment.id,
-          filename: attachment.filename,
-          mimetype: attachment.mimetype,
-          size: attachment.size,
-          contentId: attachment.contentId,
-          disposition: attachment.disposition,
-          harborFileId: `pending:${attachment.id}`,
-        })),
+        create: await Promise.all(
+          parsed.attachments.map(async (attachment) => ({
+            id: attachment.id,
+            filename: attachment.filename,
+            mimetype: attachment.mimetype,
+            size: attachment.size,
+            contentId: attachment.contentId,
+            disposition: attachment.disposition,
+            harborFileId:
+              (await uploadMailboxFile(
+                parsed.mailboxId,
+                attachment.bytes,
+                attachment.filename,
+              )) ?? `pending:${attachment.id}`,
+          })),
+        ),
       },
     },
     update: {
@@ -129,6 +145,14 @@ export async function createSentEmail(body: unknown) {
   if (!domain) throw new Error("Invalid from address.");
   const ids = generateMessageId(domain);
   await sendEmail(parsed);
+  const body = parsed.html || parsed.text || "";
+  const harborBodyFileId = body
+    ? await uploadMailboxFile(
+        parsed.mailboxId.toLowerCase(),
+        new TextEncoder().encode(body),
+        "body.html",
+      )
+    : null;
   await prisma.email.create({
     data: {
       id: ids.id,
@@ -158,6 +182,7 @@ export async function createSentEmail(body: unknown) {
       cc: normalizeAddressList(parsed.cc),
       bcc: normalizeAddressList(parsed.bcc),
       bodyPreview: previewBody(parsed.html || parsed.text || ""),
+      harborBodyFileId,
       inReplyTo: parsed.inReplyTo ?? null,
       emailReferences: parsed.references ? JSON.stringify(parsed.references) : null,
       threadId: parsed.threadId || parsed.inReplyTo || ids.id,
