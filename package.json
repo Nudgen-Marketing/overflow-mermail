@@ -12,8 +12,10 @@
     "typecheck": "prisma generate && next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@mysten-incubation/memwal": "^0.0.7",
     "@mysten/dapp-kit": "^1.0.4",
     "@mysten/enoki": "^1.0.8",
+    "@mysten/seal": "^1.1.3",
     "@mysten/sui": "^2.16.0",
     "@prisma/client": "^6.19.3",
     "@tanstack/react-query": "^5.99.0",
