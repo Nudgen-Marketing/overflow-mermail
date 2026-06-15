@@ -8,7 +8,7 @@ import {
 } from "@mysten/dapp-kit";
 import "@mysten/dapp-kit/dist/index.css";
 import { isEnokiNetwork, registerEnokiWallets } from "@mysten/enoki";
-import { getJsonRpcFullnodeUrl } from "@mysten/sui/client";
+import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { EnokiAuthGate, EnokiProvider } from "~/contexts/EnokiAuth";
