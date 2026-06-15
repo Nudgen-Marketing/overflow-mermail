@@ -11,6 +11,7 @@ import { isEnokiNetwork, registerEnokiWallets } from "@mysten/enoki";
 import { getJsonRpcFullnodeUrl } from "@mysten/sui/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { EnokiAuthGate, EnokiProvider } from "~/contexts/EnokiAuth";
 import {
   enokiClientConfig,
   getEnokiRedirectUrl,
@@ -111,7 +112,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultNetwork={enokiClientConfig.network}
       >
         <RegisterEnokiWallets />
-        <WalletProvider autoConnect>{children}</WalletProvider>
+        <WalletProvider autoConnect>
+          <EnokiProvider>
+            <EnokiAuthGate>{children}</EnokiAuthGate>
+          </EnokiProvider>
+        </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>
   );
