@@ -1,0 +1,31 @@
+{
+  "name": "clone-mail",
+  "private": true,
+  "packageManager": "yarn@1.22.19",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mysten/dapp-kit": "^1.0.4",
+    "@mysten/enoki": "^1.0.8",
+    "@mysten/sui": "^2.16.0",
+    "@tanstack/react-query": "^5.99.0",
+    "jwt-decode": "^4.0.0",
+    "next": "^16.2.9",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3",
+    "vitest": "^3.2.4"
+  }
+}
