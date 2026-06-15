@@ -40,6 +40,12 @@ select {
   padding: 28px;
 }
 
+.loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
 .hero-panel {
   min-height: calc(100vh - 56px);
   display: flex;
