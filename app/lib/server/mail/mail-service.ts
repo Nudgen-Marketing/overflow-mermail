@@ -25,6 +25,21 @@ function joinAddresses(value?: ParsedAddress[] | ParsedAddress | null) {
   return items.map((item) => item.address).filter(Boolean).join(", ");
 }
 
+function referencesToJson(value?: string | null) {
+  if (!value) return null;
+  const references = value
+    .split(/\s+/)
+    .map((item) => extractMessageId(item))
+    .filter(Boolean);
+  return references.length ? JSON.stringify(references) : null;
+}
+
+function attachmentContentToBytes(content: string | ArrayBuffer | Uint8Array) {
+  if (typeof content === "string") return new TextEncoder().encode(content);
+  if (content instanceof Uint8Array) return content;
+  return new Uint8Array(content);
+}
+
 export async function parseInboundEmail(rawEmail: ArrayBuffer) {
   const parsed = await PostalMime.parse(rawEmail);
   const body = parsed.html || parsed.text || "";
@@ -42,21 +57,22 @@ export async function parseInboundEmail(rawEmail: ArrayBuffer) {
     body,
     bodyPreview: previewBody(body),
     inReplyTo: extractMessageId(parsed.inReplyTo) ?? null,
-    emailReferences: parsed.references?.length
-      ? JSON.stringify(parsed.references.map((value) => extractMessageId(value)).filter(Boolean))
-      : null,
+    emailReferences: referencesToJson(parsed.references),
     threadId: extractMessageId(parsed.inReplyTo) ?? messageId,
     messageId,
     rawHeaders: JSON.stringify(parsed.headers ?? []),
-    attachments: (parsed.attachments ?? []).map((attachment) => ({
-      id: crypto.randomUUID(),
-      filename: attachment.filename || "attachment",
-      mimetype: attachment.mimeType || "application/octet-stream",
-      size: attachment.content.byteLength,
-      contentId: attachment.contentId ?? null,
-      disposition: attachment.disposition ?? "attachment",
-      bytes: attachment.content,
-    })),
+    attachments: (parsed.attachments ?? []).map((attachment) => {
+      const bytes = attachmentContentToBytes(attachment.content);
+      return {
+        id: crypto.randomUUID(),
+        filename: attachment.filename || "attachment",
+        mimetype: attachment.mimeType || "application/octet-stream",
+        size: bytes.byteLength,
+        contentId: attachment.contentId ?? null,
+        disposition: attachment.disposition ?? "attachment",
+        bytes,
+      };
+    }),
   };
 }
 
@@ -145,11 +161,11 @@ export async function createSentEmail(body: unknown) {
   if (!domain) throw new Error("Invalid from address.");
   const ids = generateMessageId(domain);
   await sendEmail(parsed);
-  const body = parsed.html || parsed.text || "";
-  const harborBodyFileId = body
+  const bodyContent = parsed.html || parsed.text || "";
+  const harborBodyFileId = bodyContent
     ? await uploadMailboxFile(
         parsed.mailboxId.toLowerCase(),
-        new TextEncoder().encode(body),
+        new TextEncoder().encode(bodyContent),
         "body.html",
       )
     : null;

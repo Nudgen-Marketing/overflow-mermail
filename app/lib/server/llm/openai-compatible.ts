@@ -96,7 +96,7 @@ export async function completeText(
     maxTokens?: number;
     temperature?: number;
   },
-  client: ChatClient = createOpenAICompatibleClient(env),
+  client: ChatClient = createOpenAICompatibleClient(env) as unknown as ChatClient,
 ): Promise<string> {
   const config = getOpenAICompatibleConfig(env);
   const completion = await client.chat.completions.create({
@@ -139,7 +139,7 @@ export async function runToolLoop(
     maxSteps?: number;
     temperature?: number;
   },
-  client: ChatClient = createOpenAICompatibleClient(env),
+  client: ChatClient = createOpenAICompatibleClient(env) as unknown as ChatClient,
 ): Promise<ToolLoopResult> {
   const config = getOpenAICompatibleConfig(env);
   const tools = options.tools ?? {};

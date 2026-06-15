@@ -41,6 +41,13 @@ async function deriveAesKey(credentials: HarborCredentials) {
   ]);
 }
 
+function toPlainArrayBuffer(bytes: Uint8Array) {
+  return bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer;
+}
+
 export async function encryptBytes(
   credentials: HarborCredentials,
   bytes: Uint8Array,
@@ -48,7 +55,7 @@ export async function encryptBytes(
   const key = await deriveAesKey(credentials);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, bytes),
+    await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, toPlainArrayBuffer(bytes)),
   );
   const out = new Uint8Array(iv.byteLength + ciphertext.byteLength);
   out.set(iv);
@@ -65,7 +72,7 @@ export async function decryptBytes(
     await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: bytes.slice(0, 12) },
       key,
-      bytes.slice(12),
+      toPlainArrayBuffer(bytes.slice(12)),
     ),
   );
 }
