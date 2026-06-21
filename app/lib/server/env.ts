@@ -6,6 +6,7 @@ export interface ServerEnv {
   OPENAI_API_KEY?: string;
   OPENAI_BASE_URL?: string;
   OPENAI_MODEL?: string;
+  OPENAI_AGENT_MODEL?: string;
   CLOUDFLARE_EMAIL_ACCOUNT_ID?: string;
   CLOUDFLARE_EMAIL_API_TOKEN?: string;
   WORKSPACE_SECRET_KEY?: string;
@@ -22,6 +23,7 @@ export function getServerEnv(): ServerEnv {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
     OPENAI_MODEL: process.env.OPENAI_MODEL,
+    OPENAI_AGENT_MODEL: process.env.OPENAI_AGENT_MODEL,
     CLOUDFLARE_EMAIL_ACCOUNT_ID: process.env.CLOUDFLARE_EMAIL_ACCOUNT_ID,
     CLOUDFLARE_EMAIL_API_TOKEN: process.env.CLOUDFLARE_EMAIL_API_TOKEN,
     WORKSPACE_SECRET_KEY: process.env.WORKSPACE_SECRET_KEY,
