@@ -2,14 +2,23 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getServerEnv } from "~/lib/server/env";
 import {
   MailAgentRequestSchema,
-  runMailAgent,
+  runRagMailAgent,
 } from "~/lib/server/agent/mail-agent";
 import { OpenAICompatibleConfigurationError } from "~/lib/server/llm/openai-compatible";
+import { getEnokiJwt, getEnokiZkLoginClient } from "~/lib/server/enoki";
+
+async function requireAgentAddress(headers: Headers) {
+  const jwt = getEnokiJwt(headers);
+  if (!jwt) throw new Error("Missing Enoki JWT");
+  return (await getEnokiZkLoginClient(getServerEnv()).getZkLogin({ jwt })).address;
+}
 
 export async function POST(req: NextRequest) {
   try {
     const input = MailAgentRequestSchema.parse(await req.json());
-    return NextResponse.json(await runMailAgent(getServerEnv(), input));
+    const env = getServerEnv();
+    const ownerAddress = await requireAgentAddress(req.headers);
+    return NextResponse.json(await runRagMailAgent(env, ownerAddress, input));
   } catch (error) {
     if (error instanceof OpenAICompatibleConfigurationError) {
       return NextResponse.json({ error: error.message }, { status: 503 });
