@@ -10,6 +10,7 @@ This repository is a compact clone-mail submission build. It keeps the authentic
 - Sui address display for the zkLogin identity.
 - Demo-only signed session headers using a personal-message signature.
 - OpenAI-compatible draft assist and prompt-safety helpers.
+- OpenAI-compatible mailbox agent grounded with owner-scoped MemWal context.
 - Cloudflare Email Routing worker and Email Sending REST adapter.
 - Harbor encrypted body/attachment storage adapter.
 - MemWal credential, document indexing, and recall APIs.
@@ -42,6 +43,7 @@ Required values:
 - `NEXT_PUBLIC_SUI_FULLNODE_URL`
 - `NEXT_PUBLIC_ENOKI_REDIRECT_URL`, optional; defaults to the current origin plus `/auth`
 - `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`
+- `OPENAI_AGENT_MODEL`, optional; defaults to `gpt-4.1` independently of draft assist
 - `INTERNAL_EMAIL_SECRET`
 - `APP_URL`, Worker runtime only; points Cloudflare Email Routing at the Next app
 - `CLOUDFLARE_EMAIL_ACCOUNT_ID`, `CLOUDFLARE_EMAIL_API_TOKEN`
@@ -53,6 +55,9 @@ The Google OAuth application should allow the same redirect URL shown in `.env.e
 ## Feature routes
 
 - `POST /api/ai/draft` returns an OpenAI-compatible customer-support draft.
+- `POST /api/agent/mailbox` runs the mailbox agent with MemWal grounding for the
+  Sui address derived from the Enoki JWT. The JSON body accepts `prompt` and an
+  optional `history` array of user/assistant messages.
 - `POST /api/email/send` sends through Cloudflare Email Sending and stores sent metadata.
 - `POST /api/internal/email-routing` receives raw MIME from the Worker with `X-Internal-Secret`.
 - `POST /api/harbor/session` and `POST /api/harbor/api-key` create Harbor setup credentials from zkLogin-signed session headers.
@@ -68,3 +73,8 @@ yarn build
 ```
 
 With env values configured, run `yarn dev`, open `http://localhost:3000`, sign in with Google, and confirm the dashboard shows the Google profile, Sui address, JWT status, and generated `X-Sui-*` session headers.
+
+The mailbox agent falls back to its configured OpenAI-compatible model when the
+owner has no active MemWal credential, no indexed documents, or recall is
+temporarily unavailable. When recall succeeds, the response includes
+`ragAttached: true` and the contributing MemWal blob IDs in `ragSources`.
